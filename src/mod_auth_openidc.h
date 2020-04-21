@@ -394,6 +394,8 @@ typedef struct oidc_cfg {
 	int http_timeout_short;
 	int state_timeout;
 	int max_number_of_state_cookies;
+	int state_input_header_use_user_agent;
+	int state_input_header_use_x_forwarded_for;
 	int delete_oldest_state_cookies;
 	int session_inactivity_timeout;
 	int session_cache_fallback_to_cookie;

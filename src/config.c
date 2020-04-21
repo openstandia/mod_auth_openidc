@@ -104,6 +104,10 @@
 #define OIDC_DEFAULT_STATE_TIMEOUT 300
 /* maximum number of parallel state cookies; 0 means unlimited, until the browser or server gives up */
 #define OIDC_DEFAULT_MAX_NUMBER_OF_STATE_COOKIES 7
+/* default setting for calculating the fingerprint of the state from User-Agent header during authentication */
+#define OIDC_DEFAULT_STATE_INPUT_HEADER_USE_USER_AGENT 1
+/* default setting for calculating the fingerprint of the state from X-Forwarded-For header during authentication */
+#define OIDC_DEFAULT_STATE_INPUT_HEADER_USE_X_FORWARDED_FOR 1
 /* default setting for deleting the oldest state cookies */
 #define OIDC_DEFAULT_DELETE_OLDEST_STATE_COOKIES 0
 /* default session inactivity timeout */
@@ -236,6 +240,7 @@
 #define OIDCHTTPTimeoutShort                   "OIDCHTTPTimeoutShort"
 #define OIDCStateTimeout                       "OIDCStateTimeout"
 #define OIDCStateMaxNumberOfCookies            "OIDCStateMaxNumberOfCookies"
+#define OIDCStateInputHeader                   "OIDCStateInputHeader"
 #define OIDCSessionInactivityTimeout           "OIDCSessionInactivityTimeout"
 #define OIDCMetadataDir                        "OIDCMetadataDir"
 #define OIDCSessionCacheFallbackToCookie       "OIDCSessionCacheFallbackToCookie"
@@ -1093,6 +1098,18 @@ static const char * oidc_set_refresh_access_token_before_expiry(cmd_parms *cmd,
 	return NULL;
 }
 
+/*
+ * define which header we use for calculating the fingerprint of the state during authentication
+ */
+static const char * oidc_set_state_input_header_as(cmd_parms *cmd, void *m,
+		const char *arg) {
+	oidc_cfg *cfg = (oidc_cfg *) ap_get_module_config(
+			cmd->server->module_config, &auth_openidc_module);
+	const char *rv = oidc_parse_set_state_input_header_as(cmd->pool, arg,
+			&cfg->state_input_header_use_user_agent, &cfg->state_input_header_use_x_forwarded_for);
+	return OIDC_CONFIG_DIR_RV(cmd, rv);
+}
+
 int oidc_cfg_dir_refresh_access_token_before_expiry(request_rec *r) {
 	oidc_dir_cfg *dir_cfg = ap_get_module_config(r->per_dir_config,
 			&auth_openidc_module);
@@ -1231,6 +1248,8 @@ void *oidc_create_server_config(apr_pool_t *pool, server_rec *svr) {
 	c->http_timeout_long = OIDC_DEFAULT_HTTP_TIMEOUT_LONG;
 	c->http_timeout_short = OIDC_DEFAULT_HTTP_TIMEOUT_SHORT;
 	c->state_timeout = OIDC_DEFAULT_STATE_TIMEOUT;
+	c->state_input_header_use_user_agent = OIDC_DEFAULT_STATE_INPUT_HEADER_USE_USER_AGENT;
+	c->state_input_header_use_x_forwarded_for = OIDC_DEFAULT_STATE_INPUT_HEADER_USE_X_FORWARDED_FOR;
 	c->max_number_of_state_cookies = OIDC_CONFIG_POS_INT_UNSET;
 	c->delete_oldest_state_cookies = OIDC_CONFIG_POS_INT_UNSET;
 	c->session_inactivity_timeout = OIDC_DEFAULT_SESSION_INACTIVITY_TIMEOUT;
@@ -1570,6 +1589,12 @@ void *oidc_merge_server_config(apr_pool_t *pool, void *BASE, void *ADD) {
 	c->state_timeout =
 			add->state_timeout != OIDC_DEFAULT_STATE_TIMEOUT ?
 					add->state_timeout : base->state_timeout;
+	c->state_input_header_use_user_agent =
+			add->state_input_header_use_user_agent != OIDC_DEFAULT_STATE_INPUT_HEADER_USE_USER_AGENT ?
+					add->state_input_header_use_user_agent : base->state_input_header_use_user_agent;
+	c->state_input_header_use_x_forwarded_for =
+			add->state_input_header_use_x_forwarded_for != OIDC_DEFAULT_STATE_INPUT_HEADER_USE_X_FORWARDED_FOR ?
+					add->state_input_header_use_x_forwarded_for : base->state_input_header_use_x_forwarded_for;
 	c->max_number_of_state_cookies =
 			add->max_number_of_state_cookies != OIDC_CONFIG_POS_INT_UNSET ?
 					add->max_number_of_state_cookies :
@@ -2914,6 +2939,11 @@ const command_rec oidc_config_cmds[] = {
 				(void*)APR_OFFSETOF(oidc_cfg, max_number_of_state_cookies),
 				RSRC_CONF,
 				"Maximun number of parallel state cookies i.e. outstanding authorization requests and whether to delete the oldest cookie(s)."),
+		AP_INIT_TAKE123(OIDCStateInputHeader,
+				oidc_set_state_input_header_as,
+				NULL,
+				RSRC_CONF,
+				"Specify header name which is used as the input for calculating the fingerprint of the state during authentication; must be one of \"none\", \"user-agent\", \"x-forwarded-for\" or \"both\" (default)."),	
 		AP_INIT_TAKE1(OIDCSessionInactivityTimeout,
 				oidc_set_session_inactivity_timeout,
 				(void*)APR_OFFSETOF(oidc_cfg, session_inactivity_timeout),
