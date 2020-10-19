@@ -714,6 +714,8 @@ static apr_byte_t oidc_oauth_set_request_user(request_rec *r, oidc_cfg *c,
 	return TRUE;
 }
 
+#define OAUTH2_FAPI_INTERACTION_ID_HEADER_NAME "x-fapi-interaction-id"
+
 /*
  * main routine: handle OAuth 2.0 authentication/authorization
  */
@@ -841,6 +843,19 @@ int oidc_oauth_check_userid(request_rec *r, oidc_cfg *c,
 		oidc_util_set_app_info(r, OIDC_APP_INFO_ACCESS_TOKEN, access_token,
 				OIDC_DEFAULT_HEADER_PREFIX, pass_headers, pass_envvars);
 	}
+
+	char *fapi_interaction_id = apr_pstrdup(r->pool,
+			apr_table_get(r->headers_in,
+					OAUTH2_FAPI_INTERACTION_ID_HEADER_NAME));
+	if (fapi_interaction_id == NULL) {
+		apr_uuid_t uuid;
+		apr_uuid_get(&uuid);
+		fapi_interaction_id = apr_pcalloc(r->pool,
+				APR_UUID_FORMATTED_LENGTH + 1);
+		apr_uuid_format(fapi_interaction_id, &uuid);
+	}
+	apr_table_set(r->headers_out, OAUTH2_FAPI_INTERACTION_ID_HEADER_NAME,
+			fapi_interaction_id);
 
 	/* free JSON resources */
 	json_decref(token);
