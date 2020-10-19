@@ -1,3 +1,7 @@
+10/19/2020
+- add FAPI compliant echoing of x-fapi-interaction-id header
+- bump to 2.4.5rc0fapi
+
 10/08/2020
 - add OIDCCABundlePath for configuring path to curl CA bundle
 
