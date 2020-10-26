@@ -1,3 +1,7 @@
+10/26/2020
+- add FAPI compliant echoing of x-fapi-interaction-id header
+- bump to 2.4.5rc1fapi
+
 10/22/2019
 - hash define expression option to OIDCUnAuthAction so it compiles for Apache 2.2; fixes 1461634
 - bump to 2.4.5rc1
@@ -6,10 +10,6 @@
 10/19/2020
 - delete stale session cookies that aren't in the cache
 - allow OIDCDiscoverURL to be a relative URL
-
-10/19/2020
-- add FAPI compliant echoing of x-fapi-interaction-id header
-- bump to 2.4.5rc0fapi
 
 10/08/2020
 - add OIDCCABundlePath for configuring path to curl CA bundle
