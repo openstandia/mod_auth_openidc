@@ -1,5 +1,6 @@
 10/26/2020
 - add FAPI compliant echoing of x-fapi-interaction-id header
+- add interaction-id header to err_headers out to make sure it works with ProxyPass
 - bump to 2.4.5rc1fapi
 
 10/22/2019
