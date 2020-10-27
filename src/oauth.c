@@ -858,6 +858,9 @@ int oidc_oauth_check_userid(request_rec *r, oidc_cfg *c,
 			fapi_interaction_id);
 	apr_table_set(r->err_headers_out, OAUTH2_FAPI_INTERACTION_ID_HEADER_NAME,
 			fapi_interaction_id);
+	oidc_util_set_app_info(r, OAUTH2_FAPI_INTERACTION_ID_HEADER_NAME,
+			fapi_interaction_id, "", oidc_cfg_dir_pass_info_in_headers(r),
+			oidc_cfg_dir_pass_info_in_envvars(r));
 
 	/* free JSON resources */
 	json_decref(token);

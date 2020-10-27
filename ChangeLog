@@ -1,3 +1,6 @@
+10/27/2020
+- add interaction-id header to propagated request headers and/or envvars
+
 10/26/2020
 - add FAPI compliant echoing of x-fapi-interaction-id header
 - add interaction-id header to err_headers out to make sure it works with ProxyPass
